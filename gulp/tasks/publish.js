@@ -20,10 +20,6 @@ var gulp = require('gulp'),
 gulp.task('publish', ['publish:update', 'publish:release']);
 
 gulp.task('publish:update', function() {
-    if (options.branch !== 'develop') {
-        throw new Error('Publishing is only allowed from the develop branch');
-    }
-    var message = 'Release version ' + options.version;
     return gulp.src([ 'package.json', 'component.json' ])
         .pipe(bump({ version: options.version }))
         .pipe(gulp.dest('./'))
@@ -32,13 +28,18 @@ gulp.task('publish:update', function() {
 });
 
 gulp.task('publish:release', function() {
+    if (options.branch !== 'develop') {
+        throw new Error('Publishing is only allowed on the develop branch.');
+    }
+    var message = 'Release version ' + options.version;
     return gulp.src('.')
         .pipe(git.commit(message))
         .pipe(git.tag('v' + options.version, message))
         .pipe(git.checkout('master'))
         .pipe(git.merge('develop', { args: '-X theirs' }))
-        .pipe(git.push('origin', 'master', { args: 'develop' } ))
+        .pipe(git.push('origin', 'master' ))
+        .pipe(git.push('origin', 'develop' ))
         .pipe(git.push(null, null, { args: '--tags' } ))
-        .pipe(git.checkout('develop'))
-        .pipe(shell('npm publish'));
+        .pipe(shell('npm publish'))
+        .pipe(git.checkout('develop'));
 });
