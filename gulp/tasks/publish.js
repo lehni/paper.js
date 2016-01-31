@@ -14,6 +14,7 @@ var gulp = require('gulp'),
     addSrc = require('gulp-add-src'),
     bump = require('gulp-bump'),
     git = require('gulp-git-streamed'),
+    shell = require('gulp-shell'),
     options = require('../utils/options.js')({ suffix: false });
 
 gulp.task('publish', function() {
@@ -32,7 +33,8 @@ gulp.task('publish', function() {
         .pipe(git.checkout('master'))
         .pipe(git.merge('develop', { args: '-X theirs' }))
         .pipe(git.push('origin', 'master', { args: 'develop' } ))
-        .pipe(git.push({ args: '--tags' } ))
-        .pipe(git.checkout('develop'));
+        .pipe(git.push(null, null, { args: '--tags' } ))
+        .pipe(git.checkout('develop'))
+        .pipe(shell('npm publish'));
         /**/
 });
